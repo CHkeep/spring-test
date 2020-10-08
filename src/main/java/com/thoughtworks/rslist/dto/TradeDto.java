@@ -1,5 +1,6 @@
 package com.thoughtworks.rslist.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -17,8 +18,8 @@ public class TradeDto {
     @Id
     @GeneratedValue
     private int id;
-    private int amount=0;
-    private int rank=0 ;
+    private int amount;
+    private int rank ;
 
     @ManyToOne @JoinColumn(name = "rs_event_id") private RsEventDto rsEvent;
 }

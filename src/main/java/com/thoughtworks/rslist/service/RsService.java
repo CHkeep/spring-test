@@ -57,13 +57,11 @@ public class RsService {
   }
 
   public ResponseEntity buy(Trade trade, int id) {
-    List<RsEventDto> rsEventDtoList = rsEventRepository.findAll();
     Optional<RsEventDto> rsEventDto= rsEventRepository.findById(id);
     Optional<TradeDto> oldtradeDto = tradeRepository.findByRank(trade.getRank());
-    System.out.println(rsEventDto.isPresent());
     if(!rsEventDto.isPresent() ||
         (oldtradeDto.isPresent() && trade.getAmount() < oldtradeDto.get().getAmount()) ||
-        trade.getRank() > rsEventDtoList.size()){
+        trade.getRank() > rsEventRepository.findAll().size()){
       return ResponseEntity.badRequest().build();
     }
     if(!oldtradeDto.isPresent()){

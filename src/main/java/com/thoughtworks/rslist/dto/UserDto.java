@@ -1,5 +1,6 @@
 package com.thoughtworks.rslist.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -26,6 +27,7 @@ public class UserDto {
     private int age;
     private String email;
     private String phone;
+    @Builder.Default
     private int voteNum =10;
 
     @OneToMany(cascade = CascadeType.REMOVE, mappedBy = "user")
