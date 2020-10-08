@@ -4,14 +4,9 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.GenericGenerator;
 
-import javax.persistence.CascadeType;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.OneToMany;
-import javax.persistence.Table;
+import javax.persistence.*;
 import java.util.List;
 
 @Entity
@@ -22,7 +17,8 @@ import java.util.List;
 @AllArgsConstructor
 public class UserDto {
     @Id
-    @GeneratedValue
+    @GeneratedValue(generator = "native")
+    @GenericGenerator(name = "native", strategy = "native")
     private int id;
     @Column(name = "name")
     private String userName;
@@ -34,4 +30,7 @@ public class UserDto {
 
     @OneToMany(cascade = CascadeType.REMOVE, mappedBy = "user")
     private List<RsEventDto> rsEventDtos;
+
+    @OneToMany(cascade = CascadeType.REMOVE, mappedBy = "user")
+    private List<VoteDto> voteDtos;
 }

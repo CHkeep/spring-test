@@ -91,12 +91,16 @@ public class RsController {
 
   @PostMapping("/rs/vote/{id}")
   public ResponseEntity vote(@PathVariable int id, @RequestBody Vote vote) {
+    System.out.println(id);
+    System.out.println(vote);
     rsService.vote(vote, id);
     return ResponseEntity.ok().build();
   }
 
   @PostMapping("/rs/buy/{id}")
   public ResponseEntity buy(@PathVariable int id, @RequestBody Trade trade){
+    System.out.println(id);
+    System.out.println(trade);
     rsService.buy(trade, id);
     return ResponseEntity.ok().build();
   }

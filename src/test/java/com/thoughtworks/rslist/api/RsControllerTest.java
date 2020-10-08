@@ -1,9 +1,13 @@
 package com.thoughtworks.rslist.api;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.thoughtworks.rslist.domain.Trade;
 import com.thoughtworks.rslist.dto.RsEventDto;
+import com.thoughtworks.rslist.dto.TradeDto;
 import com.thoughtworks.rslist.dto.UserDto;
 import com.thoughtworks.rslist.dto.VoteDto;
 import com.thoughtworks.rslist.repository.RsEventRepository;
+import com.thoughtworks.rslist.repository.TradeRepository;
 import com.thoughtworks.rslist.repository.UserRepository;
 import com.thoughtworks.rslist.repository.VoteRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -32,9 +36,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 class RsControllerTest {
   @Autowired private MockMvc mockMvc;
+  ObjectMapper objectMapper;
   @Autowired UserRepository userRepository;
   @Autowired RsEventRepository rsEventRepository;
   @Autowired VoteRepository voteRepository;
+  @Autowired TradeRepository tradeRepository;
   private UserDto userDto;
 
   @BeforeEach
@@ -42,6 +48,7 @@ class RsControllerTest {
     voteRepository.deleteAll();
     rsEventRepository.deleteAll();
     userRepository.deleteAll();
+    tradeRepository.deleteAll();
     userDto =
         UserDto.builder()
             .voteNum(10)
@@ -184,5 +191,78 @@ class RsControllerTest {
     List<VoteDto> voteDtos =  voteRepository.findAll();
     assertEquals(voteDtos.size(), 1);
     assertEquals(voteDtos.get(0).getNum(), 1);
+  }
+
+  @Test
+  public void shouldRepeatBuySomeRsEventSuccess() throws Exception {
+    userRepository.save(userDto);
+    RsEventDto rsEventDto = RsEventDto.builder().eventName("热搜1").keyword("hots").rank(1).voteNum(10).user(userDto).build();
+    rsEventDto =rsEventRepository.save(rsEventDto);
+    TradeDto tradeDto = TradeDto.builder().amount(8).rank(1).rsEvent(rsEventDto).build();
+    tradeRepository.save(tradeDto);
+    String jsonValue =
+            String.format(
+                    "{\"amount\":10,\"rank\":1}");
+    mockMvc.perform(post("/rs/buy/{id}",rsEventDto.getId())
+            .content(jsonValue)
+            .contentType(MediaType.APPLICATION_JSON))
+    .andExpect(status().isOk());
+    RsEventDto newRsEvent = rsEventRepository.findById(rsEventDto.getId()).get();
+    assertEquals(newRsEvent.getRank(), 1);
+    List<TradeDto> tradeDtos =  tradeRepository.findAll();
+    assertEquals(tradeDtos.size(), 1);
+    assertEquals(tradeDtos.get(0).getAmount(), 10);
+  }
+
+  @Test
+  public void shouldFirstBuyRsEventSuccess() throws Exception {
+    userRepository.save(userDto);
+    RsEventDto rsEventDto = RsEventDto.builder().eventName("热搜1").keyword("hots").rank(1).voteNum(10).user(userDto).build();
+    rsEventDto =rsEventRepository.save(rsEventDto);
+    TradeDto tradeDto = TradeDto.builder().amount(8).rank(1).rsEvent(rsEventDto).build();
+    tradeRepository.save(tradeDto);
+
+    RsEventDto rsEventDto1= RsEventDto.builder().eventName("热搜2").keyword("hots").voteNum(10).user(userDto).build();
+    rsEventDto1 =rsEventRepository.save(rsEventDto1);
+
+
+    String jsonValue =
+            String.format(
+                    "{\"amount\":10,\"rank\":2}");
+    mockMvc.perform(post("/rs/buy/{id}",rsEventDto1.getId())
+            .content(jsonValue)
+            .contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk());
+    RsEventDto newRsEvent = rsEventRepository.findById(rsEventDto1.getId()).get();
+    assertEquals(newRsEvent.getRank(), 2);
+    List<TradeDto> tradeDtos =  tradeRepository.findAll();
+    assertEquals(tradeDtos.size(), 2);
+    assertEquals(tradeDtos.get(1).getAmount(), 10);
+  }
+
+  @Test
+  public void shouldBuyRsEventSuccess() throws Exception {
+    userRepository.save(userDto);
+    RsEventDto rsEventDto = RsEventDto.builder().eventName("热搜1").keyword("hots").rank(1).voteNum(10).user(userDto).build();
+    rsEventDto =rsEventRepository.save(rsEventDto);
+    TradeDto tradeDto = TradeDto.builder().amount(8).rank(1).rsEvent(rsEventDto).build();
+    tradeRepository.save(tradeDto);
+
+    RsEventDto rsEventDto1= RsEventDto.builder().eventName("热搜2").keyword("hots").voteNum(10).user(userDto).build();
+    rsEventDto1 =rsEventRepository.save(rsEventDto1);
+
+
+    String jsonValue =
+            String.format(
+                    "{\"amount\":10,\"rank\":1}");
+    mockMvc.perform(post("/rs/buy/{id}",rsEventDto1.getId())
+            .content(jsonValue)
+            .contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk());
+    RsEventDto newRsEvent = rsEventRepository.findById(rsEventDto1.getId()).get();
+    assertEquals(newRsEvent.getRank(), 1);
+    List<TradeDto> tradeDtos =  tradeRepository.findAll();
+    assertEquals(tradeDtos.size(), 1);
+    assertEquals(tradeDtos.get(0).getAmount(), 10);
   }
 }
