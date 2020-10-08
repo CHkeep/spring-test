@@ -139,7 +139,7 @@ class RsServiceTest {
     trade = Trade.builder()
             .rsEventId(2)
             .amount(10)
-            .rank(2)
+            .rank(1)
             .build();
 
     RsEventDto rsEventDto =
@@ -148,7 +148,6 @@ class RsServiceTest {
                     .id(2)
                     .keyword("hots")
                     .voteNum(10)
-                    .rank(1)
                     .build();
 
     when(rsEventRepository.findById(anyInt())).thenReturn(Optional.of(rsEventDto));
@@ -160,7 +159,54 @@ class RsServiceTest {
 
     // then
     verify(tradeRepository).save(TradeDto.builder()
-                            .amount(10).rank(2).rsEvent(rsEventDto).build());
+                            .amount(10).rank(1).rsEvent(rsEventDto).build());
+
+    verify(rsEventRepository).save(rsEventDto);
+  }
+
+  @Test
+  void shouldBuySuccess() {
+    // given
+    trade = Trade.builder()
+            .rsEventId(2)
+            .amount(10)
+            .rank(1)
+            .build();
+
+    RsEventDto oldrsEventDto =
+            RsEventDto.builder()
+                    .eventName("热搜1")
+                    .id(1)
+                    .keyword("hots")
+                    .voteNum(10)
+                    .rank(1)
+                    .build();
+    rsEventRepository.save(oldrsEventDto);
+
+    RsEventDto rsEventDto =
+            RsEventDto.builder()
+                    .eventName("热搜2")
+                    .id(2)
+                    .keyword("hots")
+                    .voteNum(10)
+                    .build();
+
+    TradeDto oldtradeDto = TradeDto.builder()
+            .rsEvent(oldrsEventDto)
+            .rank(1)
+            .amount(8)
+            .build();
+
+    when(rsEventRepository.findById(anyInt())).thenReturn(Optional.of(rsEventDto));
+    when(tradeRepository.findByRank(anyInt())).thenReturn(Optional.of(oldtradeDto));
+    when(rsEventRepository.count()).thenReturn((long) 5);
+
+    // when
+    rsService.buy(trade,2);
+
+    // then
+    verify(tradeRepository).save(TradeDto.builder()
+            .amount(10).rank(1).rsEvent(rsEventDto).build());
 
     verify(rsEventRepository).save(rsEventDto);
   }
