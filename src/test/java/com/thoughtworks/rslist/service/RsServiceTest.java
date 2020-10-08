@@ -133,4 +133,36 @@ class RsServiceTest {
     verify(rsEventRepository).save(rsEventDto);
   }
 
+  @Test
+  void shouldFirstBuySuccess() {
+    // given
+    trade = Trade.builder()
+            .rsEventId(2)
+            .amount(10)
+            .rank(2)
+            .build();
+
+    RsEventDto rsEventDto =
+            RsEventDto.builder()
+                    .eventName("热搜2")
+                    .id(2)
+                    .keyword("hots")
+                    .voteNum(10)
+                    .rank(1)
+                    .build();
+
+    when(rsEventRepository.findById(anyInt())).thenReturn(Optional.of(rsEventDto));
+    when(tradeRepository.findByRank(anyInt())).thenReturn(Optional.empty());
+    when(rsEventRepository.count()).thenReturn((long) 5);
+
+    // when
+    rsService.buy(trade,2);
+
+    // then
+    verify(tradeRepository).save(TradeDto.builder()
+                            .amount(10).rank(2).rsEvent(rsEventDto).build());
+
+    verify(rsEventRepository).save(rsEventDto);
+  }
+
 }
