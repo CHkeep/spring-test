@@ -12,17 +12,21 @@ import com.thoughtworks.rslist.repository.UserRepository;
 import com.thoughtworks.rslist.repository.VoteRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.function.Executable;
 import org.mockito.Mock;
+import org.springframework.http.ResponseEntity;
 
 import java.time.LocalDateTime;
-import java.util.List;
+import java.util.Collection;
 import java.util.Optional;
 
+import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 class RsServiceTest {
   RsService rsService;
@@ -31,6 +35,7 @@ class RsServiceTest {
   @Mock UserRepository userRepository;
   @Mock VoteRepository voteRepository;
   @Mock TradeRepository tradeRepository;
+  @Mock ResponseEntity responseEntity;
   LocalDateTime localDateTime;
   Vote vote;
   Trade trade;
@@ -99,15 +104,15 @@ class RsServiceTest {
   void shouldRepeatBuySuccess() {
     // given
     trade = Trade.builder()
-            .rsEventId(1)
+            .rsEventId(10)
             .amount(10)
             .rank(1)
             .build();
 
     RsEventDto rsEventDto =
             RsEventDto.builder()
-                    .eventName("热搜1")
-                    .id(1)
+                    .eventName("热搜10")
+                    .id(10)
                     .keyword("hots")
                     .voteNum(10)
                     .rank(1)
@@ -130,7 +135,9 @@ class RsServiceTest {
     // then
     verify(tradeRepository)
             .findByRank(1);
+
     verify(rsEventRepository).save(rsEventDto);
+    verify(responseEntity).equals(status().isOk());
   }
 
   @Test
@@ -162,6 +169,8 @@ class RsServiceTest {
                             .amount(10).rank(1).rsEvent(rsEventDto).build());
 
     verify(rsEventRepository).save(rsEventDto);
+
+    verify(responseEntity).equals(status().isOk());
   }
 
   @Test
@@ -209,6 +218,78 @@ class RsServiceTest {
             .amount(10).rank(1).rsEvent(rsEventDto).build());
 
     verify(rsEventRepository).save(rsEventDto);
+    verify(responseEntity).equals(status().isOk());
   }
+
+  @Test
+  void shouldBuyFailureWhenRsEventIsNull() {
+    // given
+    trade = Trade.builder()
+            .rsEventId(1)
+            .amount(10)
+            .rank(1)
+            .build();
+
+    TradeDto oldtradeDto = TradeDto.builder()
+            .rank(1)
+            .amount(8)
+            .build();
+
+
+    when(rsEventRepository.findById(anyInt())).thenReturn(Optional.empty());
+    when(tradeRepository.findByRank(anyInt())).thenReturn(Optional.of(oldtradeDto));
+    when(rsEventRepository.count()).thenReturn((long) 5);
+
+    // when
+    rsService.buy(trade, 1);
+    // then
+    verify(responseEntity).equals(status().isBadRequest());
+  }
+
+  @Test
+  void shouldBuyFailureWhenAccountIsSmall() {
+    // given
+    // given
+    trade = Trade.builder()
+            .rsEventId(2)
+            .amount(10)
+            .rank(1)
+            .build();
+
+    RsEventDto oldrsEventDto =
+            RsEventDto.builder()
+                    .eventName("热搜1")
+                    .id(1)
+                    .keyword("hots")
+                    .voteNum(10)
+                    .rank(1)
+                    .build();
+    rsEventRepository.save(oldrsEventDto);
+
+    RsEventDto rsEventDto =
+            RsEventDto.builder()
+                    .eventName("热搜2")
+                    .id(2)
+                    .keyword("hots")
+                    .voteNum(10)
+                    .build();
+
+    TradeDto oldtradeDto = TradeDto.builder()
+            .rsEvent(oldrsEventDto)
+            .rank(1)
+            .amount(100)
+            .build();
+
+    when(rsEventRepository.findById(anyInt())).thenReturn(Optional.of(rsEventDto));
+    when(tradeRepository.findByRank(anyInt())).thenReturn(Optional.of(oldtradeDto));
+    when(rsEventRepository.count()).thenReturn((long) 5);
+
+    // when
+    rsService.buy(trade, 2);
+
+    // then
+    verify(responseEntity).equals(status().isBadRequest());
+  }
+
 
 }
