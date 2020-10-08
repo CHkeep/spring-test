@@ -291,5 +291,50 @@ class RsServiceTest {
     verify(responseEntity).equals(status().isBadRequest());
   }
 
+  @Test
+  void shouldBuyFailureWhenRankIsLarger() {
+    // given
+    // given
+    trade = Trade.builder()
+            .rsEventId(2)
+            .amount(10)
+            .rank(100)
+            .build();
+
+    RsEventDto oldrsEventDto =
+            RsEventDto.builder()
+                    .eventName("热搜1")
+                    .id(1)
+                    .keyword("hots")
+                    .voteNum(10)
+                    .rank(1)
+                    .build();
+    rsEventRepository.save(oldrsEventDto);
+
+    RsEventDto rsEventDto =
+            RsEventDto.builder()
+                    .eventName("热搜2")
+                    .id(2)
+                    .keyword("hots")
+                    .voteNum(10)
+                    .build();
+
+    TradeDto oldtradeDto = TradeDto.builder()
+            .rsEvent(oldrsEventDto)
+            .rank(1)
+            .amount(8)
+            .build();
+
+    when(rsEventRepository.findById(anyInt())).thenReturn(Optional.of(rsEventDto));
+    when(tradeRepository.findByRank(anyInt())).thenReturn(Optional.of(oldtradeDto));
+    when(rsEventRepository.count()).thenReturn((long) 5);
+
+    // when
+    rsService.buy(trade, 2);
+
+    // then
+    verify(responseEntity).equals(status().isBadRequest());
+  }
+
 
 }
