@@ -2,6 +2,7 @@ package com.thoughtworks.rslist.api;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.thoughtworks.rslist.domain.Trade;
+import com.thoughtworks.rslist.domain.User;
 import com.thoughtworks.rslist.dto.RsEventDto;
 import com.thoughtworks.rslist.dto.TradeDto;
 import com.thoughtworks.rslist.dto.UserDto;
@@ -264,5 +265,56 @@ class RsControllerTest {
     List<TradeDto> tradeDtos =  tradeRepository.findAll();
     assertEquals(tradeDtos.size(), 1);
     assertEquals(tradeDtos.get(0).getAmount(), 10);
+  }
+
+  @Test
+  public void shouldBuyRsEventFailureWhenRsEventIsNull() throws Exception {
+    String jsonValue =
+            String.format(
+                    "{\"amount\":10,\"rank\":1}");
+    mockMvc.perform(post("/rs/buy/{id}",4)
+            .content(jsonValue)
+            .contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isBadRequest());
+  }
+
+  @Test
+  public void shouldBuyRsEventFailureWhenAccountIsSmall() throws Exception {
+    userRepository.save(userDto);
+    RsEventDto rsEventDto = RsEventDto.builder().eventName("热搜3").keyword("hots").rank(1).voteNum(10).user(userDto).build();
+    rsEventDto =rsEventRepository.save(rsEventDto);
+    TradeDto tradeDto = TradeDto.builder().amount(100).rank(1).rsEvent(rsEventDto).build();
+    tradeRepository.save(tradeDto);
+
+    RsEventDto rsEventDto1= RsEventDto.builder().eventName("热搜4").keyword("hots").voteNum(10).user(userDto).build();
+    rsEventDto1 =rsEventRepository.save(rsEventDto1);
+    String jsonValue =
+            String.format(
+                    "{\"amount\":10,\"rank\":1}");
+    mockMvc.perform(post("/rs/buy/{id}",rsEventDto1.getId())
+            .content(jsonValue)
+            .contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isBadRequest());
+  }
+
+  @Test
+  public void shouldBuyRsEventFailureWhenRankIsLarger() throws Exception {
+    userRepository.save(userDto);
+    for (int i = 1; i < 5; i++) {
+      RsEventDto rsEventDto = RsEventDto.builder().eventName("热搜"+i).keyword("hots").rank(i).voteNum(10).user(userDto).build();
+      rsEventDto =rsEventRepository.save(rsEventDto);
+      TradeDto tradeDto = TradeDto.builder().amount(10+i).rank(i).rsEvent(rsEventDto).build();
+      tradeRepository.save(tradeDto);
+    }
+
+    RsEventDto rsEventDto1= RsEventDto.builder().eventName("热搜").keyword("hots").voteNum(10).user(userDto).build();
+    rsEventDto1 =rsEventRepository.save(rsEventDto1);
+    String jsonValue =
+            String.format(
+                    "{\"amount\":100,\"rank\":20}");
+    mockMvc.perform(post("/rs/buy/{id}",rsEventDto1.getId())
+            .content(jsonValue)
+            .contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isBadRequest());
   }
 }

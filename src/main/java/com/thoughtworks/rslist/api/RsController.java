@@ -101,8 +101,8 @@ public class RsController {
   public ResponseEntity buy(@PathVariable int id, @RequestBody Trade trade){
     System.out.println(id);
     System.out.println(trade);
-    rsService.buy(trade, id);
-    return ResponseEntity.ok().build();
+    return rsService.buy(trade, id);
+
   }
 
 

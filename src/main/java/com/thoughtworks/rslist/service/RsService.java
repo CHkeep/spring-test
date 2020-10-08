@@ -11,6 +11,7 @@ import com.thoughtworks.rslist.repository.TradeRepository;
 import com.thoughtworks.rslist.repository.UserRepository;
 import com.thoughtworks.rslist.repository.VoteRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -55,15 +56,15 @@ public class RsService {
     rsEventRepository.save(rsEvent);
   }
 
-  public void buy(Trade trade, int id) {
+  public ResponseEntity buy(Trade trade, int id) {
     List<RsEventDto> rsEventDtoList = rsEventRepository.findAll();
     Optional<RsEventDto> rsEventDto= rsEventRepository.findById(id);
-    RsEventDto rsEvent = rsEventDto.get();
     Optional<TradeDto> oldtradeDto = tradeRepository.findByRank(trade.getRank());
+    System.out.println(rsEventDto.isPresent());
     if(!rsEventDto.isPresent() ||
         (oldtradeDto.isPresent() && trade.getAmount() < oldtradeDto.get().getAmount()) ||
         trade.getRank() > rsEventDtoList.size()){
-      throw new RuntimeException();
+      return ResponseEntity.badRequest().build();
     }
     if(!oldtradeDto.isPresent()){
           TradeDto newtradeDto = TradeDto.builder().amount(trade.getAmount())
@@ -82,7 +83,9 @@ public class RsService {
               .build();
       tradeRepository.save(newtradeDto);
     }
+    RsEventDto rsEvent = rsEventDto.get();
     rsEvent.setRank(trade.getRank());
     rsEventRepository.save(rsEvent);
+    return ResponseEntity.ok().build();
   }
 }
