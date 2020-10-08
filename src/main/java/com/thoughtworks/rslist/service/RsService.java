@@ -10,11 +10,9 @@ import com.thoughtworks.rslist.repository.RsEventRepository;
 import com.thoughtworks.rslist.repository.TradeRepository;
 import com.thoughtworks.rslist.repository.UserRepository;
 import com.thoughtworks.rslist.repository.VoteRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -59,9 +57,10 @@ public class RsService {
   public ResponseEntity buy(Trade trade, int id) {
     Optional<RsEventDto> rsEventDto= rsEventRepository.findById(id);
     Optional<TradeDto> oldtradeDto = tradeRepository.findByRank(trade.getRank());
+    int rsEventDtoLength = Math.toIntExact(rsEventRepository.count());
     if(!rsEventDto.isPresent() ||
         (oldtradeDto.isPresent() && trade.getAmount() < oldtradeDto.get().getAmount()) ||
-        trade.getRank() > rsEventRepository.findAll().size()){
+        trade.getRank() > rsEventDtoLength){
       return ResponseEntity.badRequest().build();
     }
     if(!oldtradeDto.isPresent()){

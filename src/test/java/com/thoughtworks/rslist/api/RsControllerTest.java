@@ -217,13 +217,12 @@ class RsControllerTest {
 
   @Test
   public void shouldFirstBuyRsEventSuccess() throws Exception {
-    userRepository.save(userDto);
-    RsEventDto rsEventDto = RsEventDto.builder().eventName("热搜1").keyword("hots").rank(1).voteNum(10).user(userDto).build();
+    RsEventDto rsEventDto = RsEventDto.builder().eventName("热搜1").keyword("hots").rank(1).voteNum(10).build();
     rsEventDto =rsEventRepository.save(rsEventDto);
     TradeDto tradeDto = TradeDto.builder().amount(8).rank(1).rsEvent(rsEventDto).build();
     tradeRepository.save(tradeDto);
 
-    RsEventDto rsEventDto1= RsEventDto.builder().eventName("热搜2").keyword("hots").voteNum(10).user(userDto).build();
+    RsEventDto rsEventDto1= RsEventDto.builder().eventName("热搜2").keyword("hots").voteNum(10).build();
     rsEventDto1 =rsEventRepository.save(rsEventDto1);
 
 
@@ -243,13 +242,12 @@ class RsControllerTest {
 
   @Test
   public void shouldBuyRsEventSuccess() throws Exception {
-    userRepository.save(userDto);
-    RsEventDto rsEventDto = RsEventDto.builder().eventName("热搜1").keyword("hots").rank(1).voteNum(10).user(userDto).build();
+    RsEventDto rsEventDto = RsEventDto.builder().eventName("热搜1").keyword("hots").rank(1).voteNum(10).build();
     rsEventDto =rsEventRepository.save(rsEventDto);
     TradeDto tradeDto = TradeDto.builder().amount(8).rank(1).rsEvent(rsEventDto).build();
     tradeRepository.save(tradeDto);
 
-    RsEventDto rsEventDto1= RsEventDto.builder().eventName("热搜2").keyword("hots").voteNum(10).user(userDto).build();
+    RsEventDto rsEventDto1= RsEventDto.builder().eventName("热搜2").keyword("hots").voteNum(10).build();
     rsEventDto1 =rsEventRepository.save(rsEventDto1);
 
 
@@ -280,13 +278,12 @@ class RsControllerTest {
 
   @Test
   public void shouldBuyRsEventFailureWhenAccountIsSmall() throws Exception {
-    userRepository.save(userDto);
-    RsEventDto rsEventDto = RsEventDto.builder().eventName("热搜3").keyword("hots").rank(1).voteNum(10).user(userDto).build();
+    RsEventDto rsEventDto = RsEventDto.builder().eventName("热搜3").keyword("hots").rank(1).voteNum(10).build();
     rsEventDto =rsEventRepository.save(rsEventDto);
     TradeDto tradeDto = TradeDto.builder().amount(100).rank(1).rsEvent(rsEventDto).build();
     tradeRepository.save(tradeDto);
 
-    RsEventDto rsEventDto1= RsEventDto.builder().eventName("热搜4").keyword("hots").voteNum(10).user(userDto).build();
+    RsEventDto rsEventDto1= RsEventDto.builder().eventName("热搜4").keyword("hots").voteNum(10).build();
     rsEventDto1 =rsEventRepository.save(rsEventDto1);
     String jsonValue =
             String.format(
@@ -299,15 +296,14 @@ class RsControllerTest {
 
   @Test
   public void shouldBuyRsEventFailureWhenRankIsLarger() throws Exception {
-    userRepository.save(userDto);
     for (int i = 1; i < 5; i++) {
-      RsEventDto rsEventDto = RsEventDto.builder().eventName("热搜"+i).keyword("hots").rank(i).voteNum(10).user(userDto).build();
+      RsEventDto rsEventDto = RsEventDto.builder().eventName("热搜"+i).keyword("hots").rank(i).voteNum(10).build();
       rsEventDto =rsEventRepository.save(rsEventDto);
       TradeDto tradeDto = TradeDto.builder().amount(10+i).rank(i).rsEvent(rsEventDto).build();
       tradeRepository.save(tradeDto);
     }
 
-    RsEventDto rsEventDto1= RsEventDto.builder().eventName("热搜").keyword("hots").voteNum(10).user(userDto).build();
+    RsEventDto rsEventDto1= RsEventDto.builder().eventName("热搜").keyword("hots").voteNum(10).build();
     rsEventDto1 =rsEventRepository.save(rsEventDto1);
     String jsonValue =
             String.format(

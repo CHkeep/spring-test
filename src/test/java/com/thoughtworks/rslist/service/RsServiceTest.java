@@ -41,13 +41,11 @@ class RsServiceTest {
     rsService = new RsService(rsEventRepository, userRepository, voteRepository,tradeRepository);
     localDateTime = LocalDateTime.now();
     vote = Vote.builder().voteNum(2).rsEventId(1).time(localDateTime).userId(1).build();
-    trade = Trade.builder().amount(10).rank(1).build();
   }
 
   @Test
   void shouldVoteSuccess() {
     // given
-
     UserDto userDto =
         UserDto.builder()
             .voteNum(5)
@@ -98,34 +96,41 @@ class RsServiceTest {
   }
 
   @Test
-  void shouldBuySuccess() {
+  void shouldRepeatBuySuccess() {
     // given
+    trade = Trade.builder()
+            .rsEventId(1)
+            .amount(10)
+            .rank(1)
+            .build();
+
     RsEventDto rsEventDto =
             RsEventDto.builder()
-                    .eventName("event name")
+                    .eventName("热搜1")
                     .id(1)
-                    .keyword("keyword")
-                    .voteNum(2)
+                    .keyword("hots")
+                    .voteNum(10)
                     .rank(1)
                     .build();
 
+    TradeDto oldtradeDto = TradeDto.builder()
+            .rsEvent(rsEventDto)
+            .rank(1)
+            .amount(8)
+            .build();
+
 
     when(rsEventRepository.findById(anyInt())).thenReturn(Optional.of(rsEventDto));
-    when(tradeRepository.findByRank(1)).thenReturn(Optional.empty());
+    when(tradeRepository.findByRank(anyInt())).thenReturn(Optional.of(oldtradeDto));
+    when(rsEventRepository.count()).thenReturn((long) 5);
 
     // when
     rsService.buy(trade,1);
+
     // then
-
     verify(tradeRepository)
-            .save(
-                    TradeDto.builder()
-                            .amount(10)
-                            .rank(1)
-                            .rsEvent(rsEventDto)
-                            .build());
+            .findByRank(1);
     verify(rsEventRepository).save(rsEventDto);
-
   }
 
 }
